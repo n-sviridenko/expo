@@ -269,11 +269,9 @@ UM_EXPORT_METHOD_AS(saveEventAsync,
       return;
     }
   } else {
-    calendarEvent = [EKEvent eventWithEventStore:self.eventStore];
-    calendarEvent.calendar = [self.eventStore defaultCalendarForNewEvents];
-
     if (calendarId) {
       EKCalendar *calendar = [self.eventStore calendarWithIdentifier:calendarId];
+
       if (!calendar) {
         reject(@"E_INVALID_CALENDAR_ID",
              [NSString stringWithFormat:@"Calendar with id %@ could not be found", calendarId],
@@ -285,8 +283,15 @@ UM_EXPORT_METHOD_AS(saveEventAsync,
              [NSString stringWithFormat:@"Calendar with id %@ is not of type `event`", calendarId],
              nil);
         return;
-      }
+      } 
+      
+      calendarEvent = [EKEvent eventWithEventStore:self.eventStore];
       calendarEvent.calendar = calendar;
+    } else {
+        reject(@"E_INVALID_CALENDAR_ID",
+             @"CalendarId is required.",
+             nil);
+        return; 
     }
   }
 
@@ -458,7 +463,7 @@ UM_EXPORT_METHOD_AS(getRemindersAsync,
   if (calendars.count) {
     reminderCalendars = [[NSMutableArray alloc] init];
     NSArray *deviceCalendars = [self.eventStore calendarsForEntityType:EKEntityTypeReminder];
-
+    
     for (EKCalendar *calendar in deviceCalendars) {
       if ([calendars containsObject:calendar.calendarIdentifier]) {
         [reminderCalendars addObject:calendar];
